@@ -5,18 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2720fa04-ea6c-40d3-912e-e14637a2b13b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/test/java/data/SQLHelper.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/page/CreditGatePage.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/page/HomePage.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/page/PaymentGatePage.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/test/CreditGateTest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/java/test/PaymentGateTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.githab/workflows/gradle.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.githab/workflows/gradle.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ gate-simulator/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ gate-simulator/app.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ gate-simulator/data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ gate-simulator/package-lock.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ gate-simulator/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Plan.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/Plan.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,16 +38,16 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Program Files/QA_DiplomProekt",
-    "onboarding.tips.debug.path": "C:/Program Files/QA_DiplomProekt/src/main/java/org/example/Main.java"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Program Files/QA_DiplomProekt&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Program Files/QA_DiplomProekt/src/main/java/org/example/Main.java&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Program Files\QA_DiplomProekt\docs" />
