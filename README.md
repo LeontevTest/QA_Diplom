@@ -1,6 +1,6 @@
 # Перечень документации
 
-1. <a href="https://github.com/LeontevTest/QA_Diplom/blob/main/docs/Plan.md" style="font-size: 18px">Задание дипломного
+1. <a href="https://github.com/LeontevTest/QA_Diplom/blob/main/docs/Plan.md" style="font-size: 18px">План автоматизации
    проекта</a> <br>
 2. <a href="https://github.com/LeontevTest/QA_Diplom/blob/main/docs/Report.md" style="font-size: 18px">Отчет по итогам тестирования
    </a> <br>
