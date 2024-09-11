@@ -2,16 +2,15 @@
 
 1. <a href="https://github.com/LeontevTest/QA_Diplom/blob/main/docs/Plan.md" style="font-size: 18px">Задание дипломного
    проекта</a> <br>
+2. <a href="https://github.com/LeontevTest/QA_Diplom/blob/main/docs/Report.md" style="font-size: 18px">Отчет по итогам тестирования
+   </a> <br>
+3. <a href="https://github.com/LeontevTest/QA_Diplom/blob/main/docs/Summary.md">Отчет по итогам автоматизации</a> <br>
 
 
 # Процедура запуска автотестов
 
 ## Примечание
 
-Содержимое в файлах `application.properties`, `build.gradle`
-и `gradle.yml`.
-
-Содержимое файла `application.properties`, в которой настроена работа `MySQL`:
 
 Содержимое веток одинаково, имеются лишь небольшие отличия в файлах `application.properties`, `build.gradle`
 и `gradle.yml`.
