@@ -20,6 +20,9 @@
 ![Screen-545](https://github.com/user-attachments/assets/e070eaad-c3ff-441b-a69a-8950ca4e6ab7)
 
 
+![Screen-546](https://github.com/user-attachments/assets/49fe17f4-fa90-4b61-b4fe-b04b318e74c8)
+
+
   
 
 ### Найденные дефекты
