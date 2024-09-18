@@ -1,265 +1,361 @@
 package test;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import com.codeborne.selenide.logevents.SelenideLogger;
+import io.qameta.allure.selenide.AllureSelenide;
+import lombok.val;
+import org.junit.jupiter.api.*;
+import data.Card;
+import data.DbUtils;
+import page.CreditPage;
+import page.StartPage;
 
-import data.DataHelper;
-import data.SQLHelper;
-import page.CreditGatePage;
-import page.HomePage;
+import java.sql.SQLException;
 
 import static com.codeborne.selenide.Selenide.open;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static data.DataGenerator.*;
 
-@DisplayName("Credit Gate Tests")
 public class CreditGateTest {
-
-    private CreditGatePage creditGatePage = new CreditGatePage();
-    private HomePage homePage = new HomePage();
+    @BeforeAll
+    static void setUpAll() {
+        SelenideLogger.addListener("allure", new AllureSelenide());
+    }
 
     @BeforeEach
-    public void setUp() {
-        open("http://localhost:8080");
-        homePage.homePage();
-        homePage.credit();
-        creditGatePage.creditGatePage();
+    void setUp() {
+        DbUtils.clearTables();
+        String url = System.getProperty("sut.url");
+        open(url);
+
     }
 
     @AfterAll
-    public static void shouldCleanBase() {
-        SQLHelper.cleanBase();
+    static void tearDownAll() {
+        SelenideLogger.removeListener("allure");
     }
 
-    String declinedCardNumber = DataHelper.getCardDeclined().getCardNumber();
-    String declinedCardStatus = DataHelper.getCardDeclined().getCardStatus();
-    String randomCardNumber17Digits = DataHelper.getRandomCardNumber17Digits();
-    String randomCardNumber15Digits = DataHelper.getRandomCardNumber15Digits();
-    String randomCardNumber40Digits = DataHelper.getRandomCardNumber40Digits();
-    String emptyField = DataHelper.getEmptyField();
-    String validExpiryMonth = DataHelper.getValidExpiryMonth();
-    String validExpiryYear = DataHelper.getValidExpiryYear();
-    String random3Digits = DataHelper.getRandom3Digits();
-    String random1Digits = DataHelper.getRandom1Digits();
-    String random10Digits = DataHelper.getRandom10Digits();
-    String validOwner = DataHelper.getValidOwner();
-    String uppercaseValidOwner = DataHelper.getUppercaseValidOwner();
-    String lowercaseValidOwner = DataHelper.getLowercaseValidOwner();
-    String invalidOwner = DataHelper.getInvalidOwner();
-    String uppercaseInvalidOwner = DataHelper.getUppercaseInvalidOwner();
-    String lowercaseInvalidOwner = DataHelper.getLowercaseInvalidOwner();
-    String random2Digits = DataHelper.getRandom2Digits();
-    String random4Digits = DataHelper.getRandom4Digits();
-
-
+    //HappyPath
+    //passed
     @Test
-    @DisplayName("Should be open the page for buying a tour on credit")
-    void shouldBeOpenThePageForBuyingATourOnCredit() {
-        // No need for test steps here since it's just checking if the page is open
+    @Order(1)
+    void shouldBuyInCreditGate() throws SQLException {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkSuccessNotification();
+        assertEquals("APPROVED", DbUtils.getCreditStatus());
     }
 
+    //passed
     @Test
-    @DisplayName("Should be displayed error notification when the bank declines the transaction with invalid card details")
-    void shouldDisplayErrorNotificationWhenBankDeclinesTransactionWithInvalidCardDetails() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, validExpiryYear, validOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Ошибка", creditGatePage.getBankDeclinedOperationTitleText());
-        assertEquals("Ошибка! Банк отказал в проведении операции.", creditGatePage.getBankDeclinedOperationContentText());
+    @Order(2)
+    void shouldBuyInCreditGateWithNameInLatinLetters() throws SQLException {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getValidNameInLatinLetters(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkSuccessNotification();
+        assertEquals("APPROVED", DbUtils.getCreditStatus());
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered 17 random numeric characters when entering credit card number")
-    void shouldBeEntered17RandomNumericCharactersWhenEnteringCreditCardNumber() {
-        creditGatePage.fillCardData(randomCardNumber17Digits, validExpiryMonth, validExpiryYear, validOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Ошибка", creditGatePage.getBankDeclinedOperationTitleText());
-        assertEquals("Ошибка! Банк отказал в проведении операции.", creditGatePage.getBankDeclinedOperationContentText());
+    @Order(3)
+    void shouldNotBuyInCreditGateWithDeclinedCardNumber() throws SQLException {
+        Card card = new Card(getDeclinedNumber(), getCurrentMonth(), getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkDeclineNotification();
+
     }
 
+    //CardNumberField
+    //failed
     @Test
-    @DisplayName("Should be entered 15 random numeric characters when entering credit card number")
-    void shouldBeEntered15RandomNumericCharactersWhenEnteringCreditCardNumber() {
-        creditGatePage.fillCardData(randomCardNumber15Digits, validExpiryMonth, validExpiryYear, validOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Неверный формат", creditGatePage.getErrorFormatText());
+    @Order(1)
+    void shouldNotBuyInCreditGateWithInvalidCardNumber() throws SQLException {
+        Card card = new Card(getInvalidCardNumber(), getCurrentMonth(), getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkDeclineNotification();
+
     }
 
+    //passed
     @Test
-    @DisplayName("Should be entered 40 random numeric characters when entering credit card number")
-    void shouldBeEntered40RandomNumericCharactersWhenEnteringCreditCardNumber() {
-        creditGatePage.fillCardData(randomCardNumber40Digits, validExpiryMonth, validExpiryYear, validOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Ошибка", creditGatePage.getBankDeclinedOperationTitleText());
-        assertEquals("Ошибка! Банк отказал в проведении операции.", creditGatePage.getBankDeclinedOperationContentText());
+    @Order(2)
+    void shouldNotBuyInCreditGateWithShortCardNumber() {
+        Card card = new Card(getShortCardNumber(), getCurrentMonth(), getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkInvalidFormat();
     }
 
+    //failed
     @Test
-    @DisplayName("Should be empty input field when entering credit card number")
-    void shouldBeEmptyInputFieldWhenEnteringCreditCardNumber() {
-        creditGatePage.fillCardData(emptyField, validExpiryMonth, validExpiryYear, validOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Поле обязательно для заполнения", creditGatePage.getEmptyFieldText());
+    @Order(3)
+    void shouldNotBuyInCreditGateWithEmptyCardNumber() {
+        Card card = new Card(null, getCurrentMonth(), getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkRequiredField(); //TODO Изменить надпись под полем Номер карты на "Поле обязательно для заполнения"
     }
 
-
+    //MonthField
+    //failed
     @Test
-    @DisplayName("Should be entered 3 numeric characters in month field when making credit purchase")
-    void shouldBeEntered3NumericCharactersInMonthFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, random3Digits, validExpiryYear, validOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Неверно указан срок действия карты", creditGatePage.getErrorCardTermValidityText());
+    @Order(1)
+    void shouldNotBuyInCreditGateWithInvalidMonth() {
+        Card card = new Card(getApprovedNumber(), "00", getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkInvalidDate(); //TODO Изменить надпись под полем Месяц на "Неверно указан срок действия карты"
     }
 
+    //passed
     @Test
-    @DisplayName("Should be entered 1 numeric character in month field when making credit purchase")
-    void shouldBeEntered1NumericCharacterInMonthFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, random1Digits, validExpiryYear, validOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Неверный формат", creditGatePage.getErrorFormatText());
+    @Order(2)
+    void shouldNotBuyInCreditGateWithNonExistingMonth() {
+        Card card = new Card(getApprovedNumber(), "13", getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkInvalidDate();
+
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered 10 numeric characters in month field when making credit purchase")
-    void shouldBeEntered10NumericCharactersInMonthFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, random10Digits, validExpiryYear, validOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Неверно указан срок действия карты", creditGatePage.getErrorCardTermValidityText());
+    @Order(3)
+    void shouldNotBuyInCreditGateWithExpiredMonth() {
+        Card card = new Card(getApprovedNumber(), getLastMonth(), getCurrentYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkExpiredDate(); //TODO Изменить надпись под полем Месяц на "Истёк срок действия карты"
     }
 
+    //failed
     @Test
-    @DisplayName("Should be empty input field in month field when making credit purchase")
-    void shouldBeEmptyInputFieldInMonthFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, emptyField, validExpiryYear, validOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Поле обязательно для заполнения", creditGatePage.getEmptyFieldText());
+    @Order(4)
+    void shouldNotBuyInCreditGateWithEmptyMonth() {
+        Card card = new Card(getApprovedNumber(), null, getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkRequiredField(); //TODO Изменить надпись под полем Месяц на "Поле обязательно для заполнения"
     }
 
-
+    //YearField
+    //passed
     @Test
-    @DisplayName("Should be entered 3 numeric characters in Year field when making credit purchase")
-    void shouldBeEntered3NumericCharactersInYearFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, random3Digits, validOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Неверно указан срок действия карты", creditGatePage.getErrorCardTermValidityText());
+    @Order(1)
+    void shouldNotBuyInCreditGateWithExpiredYear() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getLastYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkExpiredDate();
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered 1 numeric character in Year field when making credit purchase")
-    void shouldBeEntered1NumericCharacterInYearFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, random1Digits, validOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Неверный формат", creditGatePage.getErrorFormatText());
+    @Order(2)
+    void shouldNotBuyInCreditGateWithEmptyYear() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), null, getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkRequiredField(); //TODO Изменить надпись под полем Год на "Поле обязательно для заполнения"
     }
 
+    //NameField
+    //failed
     @Test
-    @DisplayName("Should be entered 10 numeric characters in Year field when making credit purchase")
-    void shouldBeEntered10NumericCharactersInYearFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, random10Digits, validOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Неверно указан срок действия карты", creditGatePage.getErrorCardTermValidityText());
+    @Order(1)
+    void shouldNotBuyInCreditGateWithOnlyName() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getOnlyName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkInvalidName(); //TODO Изменить надпись под полем Владелец "Введите полное имя и фамилию"
     }
 
+    //failed
     @Test
-    @DisplayName("Should be empty input field in Year field when making credit purchase")
-    void shouldBeEmptyInputFieldInYearFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, emptyField, validOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Поле обязательно для заполнения", creditGatePage.getEmptyFieldText());
+    @Order(2)
+    void shouldNotBuyInCreditGateWithOnlyNameInLatinLetters() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getOnlyNameInLatinLetters(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkInvalidName(); //TODO Изменить надпись под полем Владелец "Введите полное имя и фамилию"
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered Cyrillic name in the owner field when making a credit purchase")
-    void shouldBeEnteredCyrillicNameInOwnerFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, validExpiryYear, invalidOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Неверный формат", creditGatePage.getErrorFormatText());
+    @Order(3)
+    void shouldNotBuyInCreditGateWithOnlySurname() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getOnlySurname(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkInvalidName(); //TODO Изменить надпись под полем Владелец "Введите полное имя и фамилию"
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered uppercase Cyrillic name in the owner field when making a credit purchase")
-    void shouldBeEnteredUppercaseCyrillicNameInOwnerFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, validExpiryYear, uppercaseInvalidOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Неверный формат", creditGatePage.getErrorFormatText());
+    @Order(4)
+    void shouldNotBuyInCreditGateWithOnlySurnameInLatinLetters() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getOnlySurnameInLatinLetters(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkInvalidName(); //TODO Изменить надпись под полем Владелец "Введите полное имя и фамилию"
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered lowercase Cyrillic name in the owner field when making a credit purchase")
-    void shouldBeEnteredLowercaseCyrillicNameInOwnerFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, validExpiryYear, lowercaseInvalidOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Неверный формат", creditGatePage.getErrorFormatText());
+    @Order(5)
+    void shouldNotBuyInCreditGateWithNameAndSurnameWithDash() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), "Иван-Иванов", getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkInvalidFormat();
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered uppercase Latin name in the owner field when making a credit purchase")
-    void shouldBeEnteredUppercaseLatinNameInOwnerFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, validExpiryYear, uppercaseValidOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Ошибка", creditGatePage.getBankDeclinedOperationTitleText());
-        assertEquals("Ошибка! Банк отказал в проведении операции.", creditGatePage.getBankDeclinedOperationContentText());
+    @Order(6)
+    void shouldNotBuyInCreditGateWithTooLongName() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getTooLongName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkLongName(); //TODO Изменить надпись под полем Владелец "Значение поля не может содержать более 100 символов"
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered lowercase Latin name in the owner field when making a credit purchase")
-    void shouldBeEnteredLowercaseLatinNameInOwnerFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, validExpiryYear, lowercaseValidOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Ошибка", creditGatePage.getBankDeclinedOperationTitleText());
-        assertEquals("Ошибка! Банк отказал в проведении операции.", creditGatePage.getBankDeclinedOperationContentText());
+    @Order(7)
+    void shouldNotBuyInCreditGateWithDigitsInName() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getNameWithNumbers(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkInvalidDataName(); //TODO Изменить надпись под полем Владелец "Значение поля может содержать только буквы и дефис"
     }
 
+    //failed
     @Test
-    @DisplayName("Should be an empty input field in the owner field when making a credit purchase")
-    void shouldBeEmptyInputFieldInOwnerFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, validExpiryYear, emptyField, random3Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Поле обязательно для заполнения", creditGatePage.getEmptyFieldText());
+    @Order(8)
+    void shouldNotBuyInCreditGateWithTooShortName() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getNameWithOneLetter(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkShortName(); //TODO Изменить надпись под полем Владелец "Значение поля должно содержать больше одной буквы"
     }
 
+    //passed
     @Test
-    @DisplayName("Should be entered 4 numeric characters in CVC field when making a credit purchase")
-    void shouldBeEntered4NumericCharactersInCVCFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, validExpiryYear, validOwner, random4Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Ошибка", creditGatePage.getBankDeclinedOperationTitleText());
-        assertEquals("Ошибка! Банк отказал в проведении операции.", creditGatePage.getBankDeclinedOperationContentText());
+    @Order(9)
+    void shouldNotBuyInCreditGateWithEmptyName() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), null, getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkRequiredField();
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered 2 numeric characters in CVC field when making a credit purchase")
-    void shouldBeEntered2NumericCharactersInCVCFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, validExpiryYear, validOwner, random2Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Неверный формат", creditGatePage.getErrorFormatText());
+    @Order(10)
+    void shouldNotBuyInCreditGateWithSpaceInsteadOfName() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), " ", getValidCvc());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkInvalidDataName(); //TODO Изменить надпись под полем Владелец "Значение поля может содержать только буквы и дефис"
     }
 
+    //CVC/CVVField
+    //failed
     @Test
-    @DisplayName("Should be entered 10 numeric characters in CVC field when making a credit purchase")
-    void shouldBeEntered10NumericCharactersInCVCFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, validExpiryYear, validOwner, random10Digits);
-        creditGatePage.clickContinueButton();
-        assertEquals("Ошибка", creditGatePage.getBankDeclinedOperationTitleText());
-        assertEquals("Ошибка! Банк отказал в проведении операции.", creditGatePage.getBankDeclinedOperationContentText());
+    @Order(1)
+    void shouldNotBuyInCreditGateWithOneDigitInCvc() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getValidName(), getCvcWithOneDigit());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkInvalidCvc(); //TODO Изменить надпись под полем CVC "Значение поля должно содержать 3 цифры"
     }
 
+    //failed
     @Test
-    @DisplayName("Should be an empty input field in CVC field when making a credit purchase")
-    void shouldBeEmptyInputFieldInCVCFieldWhenMakingCreditPurchase() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, validExpiryYear, validOwner, emptyField);
-        creditGatePage.clickContinueButton();
-        assertEquals("Поле обязательно для заполнения", creditGatePage.getEmptyFieldText());
+    @Order(2)
+    void shouldNotBuyInCreditGateWithTwoDigitsInCvc() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getValidName(), getCvcWithTwoDigits());
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkInvalidCvc(); //TODO Изменить надпись под полем CVC "Значение поля должно содержать 3 цифры"
     }
 
-        @Test
-    @DisplayName("Should be displayed the card declined status in the database")
-    void shouldBeDisplayedTheCardDeclinedStatusInTheDatabase() {
-        creditGatePage.fillCardData(declinedCardNumber, validExpiryMonth, validExpiryYear, validOwner, random3Digits);
-        creditGatePage.clickContinueButton();
-        creditGatePage.getBankDeclinedOperationTitleText();
-        creditGatePage.getBankDeclinedOperationContentText();
-        assertEquals(declinedCardStatus, SQLHelper.getCardStatus("credit_request_entity"));
+    //failed
+    @Test
+    @Order(3)
+    void shouldNotBuyInCreditGateWithEmptyCvc() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getValidName(), null);
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkRequiredField(); //TODO Изменить надпись под полем CVC на "Поле обязательно для заполнения"
     }
 
+    //AllEmptyFields
+    //failed
+    @Test
+    @Order(1)
+    void shouldNotBuyInCreditGateWithAllEmptyFields() {
+        Card card = new Card(null, null, null, null, null);
+        val startPage = new StartPage();
+        startPage.buyInCredit();
+        val creditPage = new CreditPage();
+        creditPage.fulfillData(card);
+        creditPage.checkAllFieldsAreRequired(); //TODO Изменить надписи под полями на "Поле обязательно для заполнения"
+
+    }
 }

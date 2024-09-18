@@ -1,271 +1,366 @@
 package test;
 
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import com.codeborne.selenide.logevents.SelenideLogger;
+import io.qameta.allure.selenide.AllureSelenide;
+import lombok.val;
+import org.junit.jupiter.api.*;
+import data.Card;
+import data.DbUtils;
+import page.PaymentPage;
+import page.StartPage;
 
-import page.HomePage;
-import page.PaymentGatePage;
-import data.DataHelper;
-import data.SQLHelper;
+import java.sql.SQLException;
 
-import static com.codeborne.selenide.Selenide.*;
+import static com.codeborne.selenide.Selenide.open;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static data.DataGenerator.*;
 
-@DisplayName("Payment Gate Tests")
 public class PaymentGateTest {
-
-    private PaymentGatePage paymentGatePage = new PaymentGatePage();
-    private HomePage homePage = new HomePage();
-
-    String approvedCardNumber = DataHelper.getCardApproved().getCardNumber();
-    String approvedCardStatus = DataHelper.getCardApproved().getCardStatus();
-    String randomCardNumber17Digits = DataHelper.getRandomCardNumber17Digits();
-    String randomCardNumber15Digits = DataHelper.getRandomCardNumber15Digits();
-    String randomCardNumber40Digits = DataHelper.getRandomCardNumber40Digits();
-    String emptyField = DataHelper.getEmptyField();
-
-    String validExpiryMonth = DataHelper.getValidExpiryMonth();
-    String validExpiryYear = DataHelper.getValidExpiryYear();
-    String random3Digits = DataHelper.getRandom3Digits();
-    String random1Digits = DataHelper.getRandom1Digits();
-    String random10Digits = DataHelper.getRandom10Digits();
-
-    String validOwner = DataHelper.getValidOwner();
-    String uppercaseValidOwner = DataHelper.getUppercaseValidOwner();
-    String lowercaseValidOwner = DataHelper.getLowercaseValidOwner();
-    String invalidOwner = DataHelper.getInvalidOwner();
-    String uppercaseInvalidOwner = DataHelper.getUppercaseInvalidOwner();
-    String lowercaseInvalidOwner = DataHelper.getLowercaseInvalidOwner();
-
-    String random2Digits = DataHelper.getRandom2Digits();
-    String random4Digits = DataHelper.getRandom4Digits();
-
+    @BeforeAll
+    static void setUpAll() {
+        SelenideLogger.addListener("allure", new AllureSelenide());
+    }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         open("http://localhost:8080");
-        homePage.homePage();
-        homePage.payment();
-        paymentGatePage.paymentGatePage();
+        DbUtils.clearTables();
     }
 
     @AfterAll
-    public static void shouldCleanBase() {
-        SQLHelper.cleanBase();
+    static void tearDownAll() {
+        SelenideLogger.removeListener("allure");
     }
 
+    //HappyPath
+    //passed
     @Test
-    @DisplayName("Should be open the page for buying a tour on card payment")
-    void shouldBeOpenThePageForBuyingATourOnCardPayment() {
-        // No need for test steps here since it's just checking if the page is open
+    @Order(1)
+    void shouldBuyInPaymentGate() throws SQLException {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkSuccessNotification();
+        assertEquals("APPROVED", DbUtils.getPaymentStatus());
     }
 
+    //passed
     @Test
-    @DisplayName("Should be displayed success notification when the bank approves the transaction with valid card details during card payment")
-    void shouldDisplaySuccessNotificationWhenBankApprovesTransactionWithValidCardDetailsDuringCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, validExpiryYear, validOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Успешно", paymentGatePage.getBankApprovedOperationTitleText());
-        assertEquals("Операция одобрена Банком.", paymentGatePage.getBankApprovedOperationContentText());
+    @Order(2)
+    void shouldBuyInPaymentGateWithNameInLatinLetters() throws SQLException {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getValidNameInLatinLetters(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkSuccessNotification();
+        assertEquals("APPROVED", DbUtils.getPaymentStatus());
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered 17 random numeric characters when entering card number")
-    void shouldBeEntered17RandomNumericCharactersWhenEnteringCardNumber() {
-        paymentGatePage.fillCardData(randomCardNumber17Digits, validExpiryMonth, validExpiryYear, validOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Ошибка", paymentGatePage.getBankDeclinedOperationTitleText());
-        assertEquals("Ошибка! Банк отказал в проведении операции.", paymentGatePage.getBankDeclinedOperationContentText());
+    @Order(3)
+    void shouldNotBuyInPaymentGateWithDeclinedCardNumber() throws SQLException {
+        Card card = new Card(getDeclinedNumber(), getCurrentMonth(), getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkDeclineNotification();
+        assertEquals("DECLINED", DbUtils.getPaymentStatus());
     }
 
+
+    //CardNumberField
+    //failed
     @Test
-    @DisplayName("Should be entered 15 random numeric characters when entering card number")
-    void shouldBeEntered15RandomNumericCharactersWhenEnteringCardNumber() {
-        paymentGatePage.fillCardData(randomCardNumber15Digits, validExpiryMonth, validExpiryYear, validOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Неверный формат", paymentGatePage.getErrorFormatText());
+    @Order(1)
+    void shouldNotBuyInPaymentGateWithInvalidCardNumber() throws SQLException {
+        Card card = new Card(getInvalidCardNumber(), getCurrentMonth(), getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkDeclineNotification();
+
     }
 
+    //passed
     @Test
-    @DisplayName("Should be entered 40 random numeric characters when entering card number")
-    void shouldBeEntered40RandomNumericCharactersWhenEnteringCardNumber() {
-        paymentGatePage.fillCardData(randomCardNumber40Digits, validExpiryMonth, validExpiryYear, validOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Ошибка", paymentGatePage.getBankDeclinedOperationTitleText());
-        assertEquals("Ошибка! Банк отказал в проведении операции.", paymentGatePage.getBankDeclinedOperationContentText());
+    @Order(2)
+    void shouldNotBuyInPaymentGateWithShortCardNumber() {
+        Card card = new Card(getShortCardNumber(), getCurrentMonth(), getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkInvalidFormat();
     }
 
+    //failed
     @Test
-    @DisplayName("Should be empty input field when entering card number")
-    void shouldBeEmptyInputFieldWhenEnteringCardNumber() {
-        paymentGatePage.fillCardData(emptyField, validExpiryMonth, validExpiryYear, validOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Поле обязательно для заполнения", paymentGatePage.getEmptyFieldText());
+    @Order(3)
+    void shouldNotBuyInPaymentGateWithEmptyCardNumber() {
+        Card card = new Card(null, getCurrentMonth(), getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkRequiredField(); //TODO Изменить надпись под полем Номер карты на "Поле обязательно для заполнения"
     }
 
 
+    //MonthField
+    //failed
     @Test
-    @DisplayName("Should be entered 3 numeric characters in month field when making card payment")
-    void shouldBeEntered3NumericCharactersInMonthFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, random3Digits, validExpiryYear, validOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Неверно указан срок действия карты", paymentGatePage.getErrorCardTermValidityText());
+    @Order(1)
+    void shouldNotBuyInPaymentGateWithInvalidMonth() {
+        Card card = new Card(getApprovedNumber(), "00", getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkInvalidDate(); //TODO Изменить надпись под полем Месяц на "Неверно указан срок действия карты"
     }
 
+    //passed
     @Test
-    @DisplayName("Should be entered 1 numeric character in month field when making card payment")
-    void shouldBeEntered1NumericCharacterInMonthFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, random1Digits, validExpiryYear, validOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Неверный формат", paymentGatePage.getErrorFormatText());
+    @Order(2)
+    void shouldNotBuyInPaymentGateWithNonExistingMonth() {
+        Card card = new Card(getApprovedNumber(), "13", getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkInvalidDate();
+
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered 10 numeric characters in month field when making card payment")
-    void shouldBeEntered10NumericCharactersInMonthFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, random10Digits, validExpiryYear, validOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Неверно указан срок действия карты", paymentGatePage.getErrorCardTermValidityText());
+    @Order(3)
+    void shouldNotBuyInPaymentGateWithExpiredMonth() {
+        Card card = new Card(getApprovedNumber(), getLastMonth(), getCurrentYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkExpiredDate(); //TODO Изменить надпись под полем Месяц на "Истёк срок действия карты"
     }
 
+    //failed
     @Test
-    @DisplayName("Should be empty input field in month field when making card payment")
-    void shouldBeEmptyInputFieldInMonthFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, emptyField, validExpiryYear, validOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Поле обязательно для заполнения", paymentGatePage.getEmptyFieldText());
+    @Order(4)
+    void shouldNotBuyInPaymentGateWithEmptyMonth() {
+        Card card = new Card(getApprovedNumber(), null, getNextYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkRequiredField(); //TODO Изменить надпись под полем Месяц на "Поле обязательно для заполнения"
     }
 
+
+    //YearField
+    //passed
     @Test
-    @DisplayName("Should be entered 3 numeric characters in year field when making card payment")
-    void shouldBeEntered3NumericCharactersInYearFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, random3Digits, validOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Неверно указан срок действия карты", paymentGatePage.getErrorCardTermValidityText());
+    @Order(1)
+    void shouldNotBuyInPaymentGateWithExpiredYear() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getLastYear(), getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkExpiredDate();
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered 1 numeric character in year field when making card payment")
-    void shouldBeEntered1NumericCharacterInYearFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, random1Digits, validOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Неверный формат", paymentGatePage.getErrorFormatText());
+    @Order(2)
+    void shouldNotBuyInPaymentGateWithEmptyYear() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), null, getValidName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkRequiredField(); //TODO Изменить надпись под полем Год на "Поле обязательно для заполнения"
     }
 
+
+    //NameField
+    //failed
     @Test
-    @DisplayName("Should be entered 10 numeric characters in year field when making card payment")
-    void shouldBeEntered10NumericCharactersInYearFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, random10Digits, validOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Неверно указан срок действия карты", paymentGatePage.getErrorCardTermValidityText());
+    @Order(1)
+    void shouldNotBuyInPaymentGateWithOnlyName() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getOnlyName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkInvalidName(); //TODO Изменить надпись под полем Владелец "Введите полное имя и фамилию"
     }
 
+    //failed
     @Test
-    @DisplayName("Should be empty input field in year field when making card payment")
-    void shouldBeEmptyInputFieldInYearFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, emptyField, validOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Поле обязательно для заполнения", paymentGatePage.getEmptyFieldText());
+    @Order(2)
+    void shouldNotBuyInPaymentGateWithOnlyNameInLatinLetters() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getOnlyNameInLatinLetters(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkInvalidName(); //TODO Изменить надпись под полем Владелец "Введите полное имя и фамилию"
     }
 
-
+    //failed
     @Test
-    @DisplayName("Should be entered Cyrillic name in owner field when making card payment")
-    void shouldBeEnteredCyrillicNameInOwnerFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, validExpiryYear, invalidOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Неверный формат", paymentGatePage.getErrorFormatText());
+    @Order(3)
+    void shouldNotBuyInPaymentGateWithOnlySurname() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getOnlySurname(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkInvalidName(); //TODO Изменить надпись под полем Владелец "Введите полное имя и фамилию"
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered uppercase Cyrillic name in owner field when making card payment")
-    void shouldBeEnteredUppercaseCyrillicNameInOwnerFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, validExpiryYear, uppercaseInvalidOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Неверный формат", paymentGatePage.getErrorFormatText());
+    @Order(4)
+    void shouldNotBuyInPaymentGateWithOnlySurnameInLatinLetters() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getOnlySurnameInLatinLetters(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkInvalidName(); //TODO Изменить надпись под полем Владелец "Введите полное имя и фамилию"
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered lowercase Cyrillic name in owner field when making card payment")
-    void shouldBeEnteredLowercaseCyrillicNameInOwnerFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, validExpiryYear, lowercaseInvalidOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Неверный формат", paymentGatePage.getErrorFormatText());
+    @Order(5)
+    void shouldNotBuyInPaymentGateWithNameAndSurnameWithDash() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), "Иван-Иванов", getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkInvalidFormat();
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered uppercase Latin name in owner field when making card payment")
-    void shouldBeEnteredUppercaseLatinNameInOwnerFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, validExpiryYear, uppercaseValidOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Успешно", paymentGatePage.getBankApprovedOperationTitleText());
-        assertEquals("Операция одобрена Банком.", paymentGatePage.getBankApprovedOperationContentText());
+    @Order(6)
+    void shouldNotBuyInPaymentGateWithTooLongName() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getTooLongName(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkLongName(); //TODO Изменить надпись под полем Владелец "Значение поля не может содержать более 100 символов"
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered lowercase Latin name in owner field when making card payment")
-    void shouldBeEnteredLowercaseLatinNameInOwnerFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, validExpiryYear, lowercaseValidOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Успешно", paymentGatePage.getBankApprovedOperationTitleText());
-        assertEquals("Операция одобрена Банком.", paymentGatePage.getBankApprovedOperationContentText());
+    @Order(7)
+    void shouldNotBuyInPaymentGateWithDigitsInName() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getNameWithNumbers(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkInvalidDataName(); //TODO Изменить надпись под полем Владелец "Значение поля может содержать только буквы и дефис"
     }
 
+    //failed
     @Test
-    @DisplayName("Should be empty input field in owner field when making card payment")
-    void shouldBeEmptyInputFieldInOwnerFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, validExpiryYear, emptyField, random3Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Поле обязательно для заполнения", paymentGatePage.getEmptyFieldText());
+    @Order(8)
+    void shouldNotBuyInPaymentGateWithTooShortName() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getNameWithOneLetter(), getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkShortName(); //TODO Изменить надпись под полем Владелец "Значение поля должно содержать больше одной буквы"
     }
 
+    //passed
     @Test
-    @DisplayName("Should be entered 4 numeric characters in CVC field when making card payment")
-    void shouldBeEntered4NumericCharactersInCVCFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, validExpiryYear, validOwner, random4Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Успешно", paymentGatePage.getBankApprovedOperationTitleText());
-        assertEquals("Операция одобрена Банком.", paymentGatePage.getBankApprovedOperationContentText());
+    @Order(9)
+    void shouldNotBuyInPaymentGateWithEmptyName() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), null, getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkRequiredField();
     }
 
+    //failed
     @Test
-    @DisplayName("Should be entered 2 numeric characters in CVC field when making card payment")
-    void shouldBeEntered2NumericCharactersInCVCFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, validExpiryYear, validOwner, random2Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Неверный формат", paymentGatePage.getErrorFormatText());
+    @Order(10)
+    void shouldNotBuyInPaymentGateWithSpaceInsteadOfName() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), " ", getValidCvc());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkInvalidDataName(); //TODO Изменить надпись под полем Владелец "Значение поля может содержать только буквы и дефис"
     }
 
+
+    //CVC/CVVField
+    //failed
     @Test
-    @DisplayName("Should be entered 10 numeric characters in CVC field when making card payment")
-    void shouldBeEntered10NumericCharactersInCVCFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, validExpiryYear, validOwner, random10Digits);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Успешно", paymentGatePage.getBankApprovedOperationTitleText());
-        assertEquals("Операция одобрена Банком.", paymentGatePage.getBankApprovedOperationContentText());
+    @Order(1)
+    void shouldNotBuyInPaymentGateWithOneDigitInCvc() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getValidName(), getCvcWithOneDigit());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkInvalidCvc(); //TODO Изменить надпись под полем CVC "Значение поля должно содержать 3 цифры"
     }
 
+    //failed
     @Test
-    @DisplayName("Should be empty input field in CVC field when making card payment")
-    void shouldBeEmptyInputFieldInCVCFieldWhenMakingCardPayment() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, validExpiryYear, validOwner, emptyField);
-        paymentGatePage.clickContinueButton();
-        assertEquals("Поле обязательно для заполнения", paymentGatePage.getEmptyFieldText());
+    @Order(2)
+    void shouldNotBuyInPaymentGateWithTwoDigitsInCvc() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getValidName(), getCvcWithTwoDigits());
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkInvalidCvc(); //TODO Изменить надпись под полем CVC "Значение поля должно содержать 3 цифры"
     }
 
-
+    //failed
     @Test
-    @DisplayName("Should be displayed the card approved status in the database")
-    void shouldBeDisplayedTheCardApprovedStatusInTheDatabase() {
-        paymentGatePage.fillCardData(approvedCardNumber, validExpiryMonth, validExpiryYear, validOwner, random3Digits);
-        paymentGatePage.clickContinueButton();
-        paymentGatePage.getBankApprovedOperationTitleText();
-        paymentGatePage.getBankApprovedOperationContentText();
-        assertEquals(approvedCardStatus, SQLHelper.getCardStatus("payment_entity"));
+    @Order(3)
+    void shouldNotBuyInPaymentGateWithEmptyCvc() {
+        Card card = new Card(getApprovedNumber(), getCurrentMonth(), getNextYear(), getValidName(), null);
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkRequiredField(); //TODO Изменить надпись под полем CVC на "Поле обязательно для заполнения"
     }
 
+
+    //AllEmptyFields
+    //failed
+    @Test
+    @Order(1)
+    void shouldNotBuyInPaymentGateWithAllEmptyFields() {
+        Card card = new Card(null, null, null, null, null);
+        val startPage = new StartPage();
+        startPage.buy();
+        val paymentPage = new PaymentPage();
+        paymentPage.fulfillData(card);
+        paymentPage.checkAllFieldsAreRequired(); //TODO Изменить надписи под полями на "Поле обязательно для заполнения"
+    }
 
 }

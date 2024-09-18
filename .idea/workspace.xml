@@ -5,13 +5,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2720fa04-ea6c-40d3-912e-e14637a2b13b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/ gate-simulator/Dockerfile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ gate-simulator/app.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ gate-simulator/data.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ gate-simulator/package-lock.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ gate-simulator/package.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/data/Card.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/data/DataGenerator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/data/DbUtils.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/page/StartPage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ gate-simulator/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/gate-simulator/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ gate-simulator/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/gate-simulator/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ gate-simulator/data.json" beforeDir="false" afterPath="$PROJECT_DIR$/gate-simulator/data.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ gate-simulator/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/gate-simulator/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ gate-simulator/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/gate-simulator/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.githab/workflows/gradle.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.githab/workflows/gradle.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/data/DataHelper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/data/SQLHelper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/page/CreditGatePage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/page/CreditPage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/page/HomePage.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/page/PaymentGatePage.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/page/PaymentPage.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/test/CreditGateTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/test/CreditGateTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/test/PaymentGateTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/test/PaymentGateTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,7 +36,44 @@
       <ProjectState />
     </projectState>
   </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$">
+          <activation />
+        </task>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="QA_DiplomProekt" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="QA_DiplomProekt" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -38,20 +88,79 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Program Files/QA_DiplomProekt&quot;,
-    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Program Files/QA_DiplomProekt/src/main/java/org/example/Main.java&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.CreditGateTest.executor": "Run",
+    "Gradle.PaymentGateTest.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Program Files/QA_DiplomProekt",
+    "onboarding.tips.debug.path": "C:/Program Files/QA_DiplomProekt/src/main/java/org/example/Main.java",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Program Files\QA_DiplomProekt\docs" />
     </key>
+  </component>
+  <component name="RunManager" selected="Gradle.CreditGateTest">
+    <configuration name="CreditGateTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;test.CreditGateTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="PaymentGateTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;test.PaymentGateTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Gradle.CreditGateTest" />
+        <item itemvalue="Gradle.PaymentGateTest" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>

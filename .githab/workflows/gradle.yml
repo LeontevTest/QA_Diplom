@@ -1,48 +1,27 @@
-name: Build and Test
 
-on:
-  push:
-    branches:
-      - main
+image: Ubuntu
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+stack: jdk 11
+clone_depth: 1
+pull_requests:
+  do_not_increment_build_number: true
 
-    services:
-      docker:
-        image: docker:dind
-        options: --privileged
+branches:
+  only:
+    - main
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+build: off
 
-      - name: Set up JDK
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: '11'
+install:
+  - sudo curl -L "https://github.com/docker/compose/releases/download/1.28.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  - sudo chmod +x /usr/local/bin/docker-compose
+  - sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
-      - name: Install Docker Compose
-        run: |
-          sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
 
-      - name: Start Docker Compose
-        run: docker-compose -f docker-compose.yml up -d
-
-      - name: Wait for services to start
-        run: sleep 20
-
-      - name: Run application
-        run: java -jar -Dserver.port=8080 ./artifacts/aqa-shop.jar &
-
-      - name: Make Gradlew executable
-        run: chmod +x gradlew
-
-      - name: Build and Test
-        run: ./gradlew test --info -Dselenide.headless=true
-
-      - name: Stop Docker Compose
-        run: docker-compose -f docker-compose.yml down
+build_script:
+  - docker-compose up -d
+  - sleep 30
+  - java -Dspring.datasource.url=jdbc:mysql://localhost:3306/app -jar artifacts/aqa-shop.jar &
+  - sleep 10
+  - chmod +x gradlew
+  - ./gradlew clean test -Ddb.url=jdbc:mysql://localhost:3306/app -Dselenide.headless=true
