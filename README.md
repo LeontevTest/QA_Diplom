@@ -7,7 +7,6 @@
 3. <a href="https://github.com/LeontevTest/QA_Diplom/blob/main/docs/Summary.md">Отчет по итогам автоматизации</a> <br>
 
 
-# Процедура запуска автотестов
 
 # Инструкция подключения БД и запуска SUT
 1. Склонировать проект из репозитория командой ``` git clone ```
