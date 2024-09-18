@@ -9,6 +9,7 @@ import java.time.Duration;
 
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selectors.byXpath;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
@@ -18,7 +19,7 @@ public class CreditPage {
     private SelenideElement cardNumberField = $("input[placeholder='0000 0000 0000 0000']");
     private SelenideElement monthField = $("input[placeholder='08']");
     private SelenideElement yearField = $("input[placeholder='22']");
-    private SelenideElement holderField = $(byXpath("/html/body/div/div/form/fieldset/div[3]/span/span[1]/span/span/span[2]/input"));
+    private SelenideElement holderField = $(byText("Владелец")).parent().$(".input__control");
     private SelenideElement cvcField = $("input[placeholder='999']");
     private SelenideElement continueButton = $$("button").findBy(Condition.text("Продолжить"));
 

@@ -8,9 +8,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DbUtils {
-    private static String url= System.getProperty("db.url");
-    private static String user = System.getProperty("db.user");
-    private static String password = System.getProperty("db.password");
+    static String url = System.getProperty("db.url");
+    static String user = System.getProperty("db.user");
+    static String password = System.getProperty("db.password");
 
     public static void clearTables() {
         val deletePaymentEntity = "DELETE FROM payment_entity";
@@ -30,28 +30,45 @@ public class DbUtils {
 
     }
 
+
     public static String getPaymentStatus() throws SQLException {
-        String statusSQL = "SELECT status FROM payment_entity";
+        val statusSQL = "SELECT status FROM payment_entity;";
         return getStatus(statusSQL);
     }
 
     public static String getCreditStatus() throws SQLException {
-        String statusSQL = "SELECT status FROM credit_request_entity";
+        val statusSQL = "SELECT status FROM credit_request_entity;";
         return getStatus(statusSQL);
     }
 
-    private static String getStatus(String query) throws SQLException {
-        String result = "";
+    public static String countRecords() throws SQLException {
+        val countSQL = "SELECT COUNT(*) FROM order_entity;";
         val runner = new QueryRunner();
-        try
-                (val conn = DriverManager.getConnection(
-                        url, user, password)
-                ) {
+        Long count = null;
 
-            result = runner.query(conn, query, new ScalarHandler<String>());
-            System.out.println(result);
-            return result;
+        try (
+                val conn = DriverManager.getConnection(
+                        url, user, password
+                );
+        ) {
+            count = runner.query(conn, countSQL, new ScalarHandler<>());
+            System.out.println(count);
         }
+        return Long.toString(count);
+    }
 
+    private static String getStatus(String query) throws SQLException {
+        val runner = new QueryRunner();
+        String data = "";
+
+        try (
+                val conn = DriverManager.getConnection(
+                        url, user, password
+                );
+        ) {
+            data = runner.query(conn, query, new ScalarHandler<>());
+            System.out.println(data);
+        }
+        return data;
     }
 }
