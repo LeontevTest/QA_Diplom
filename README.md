@@ -15,19 +15,19 @@
 1. Запуск SUT
 - для MySQL ввести в терминале команду
 
-``` java -Dspring.datasource.url=jdbc:mysql://localhost:3306/app  -jar artifacts/aqa-shop.jar```
+``` java "-Dspring.datasource.url=jdbc:mysql://localhost:3306/app" -jar artifacts/aqa-shop.jar```
 
 - для PostgreSQL ввести в терминале команду
 
-``` java -Dspring.datasource.url=jdbc:postgresql://localhost:5432/app  -jar artifacts/aqa-shop.jar ```
+``` java "-Dspring.datasource.url=jdbc:postgresql://localhost:5432/app" -jar artifacts/aqa-shop.jar ```
 
-5. Запуск тестов (Allure)
+5. Запуск тестов также стоит выполнить с параметрами, указав путь к базе данных в командной строке:
 -  для запуска на MySQL ввести команду
 
-``` gradlew clean test -Ddb.url=jdbc:mysql://localhost:3306/app allureReport ```
+``` ./gradlew clean test "-Ddb.url=jdbc:mysql://localhost:3306/app" ```
 
 - для запуска на PostgreSQ ввести команду
 
-``` gradlew clean test -Ddb.url=jdbc:postgresql://localhost:5432/app allureReport ```
+``` ./gradlew clean test "-Ddb.url=jdbc:postgresql://localhost:5432/app" ```
 
 6. После окончания тестов завершить работу приложения (Ctrl+C), остановить контейнеры командой ``` docker-compose down ```
